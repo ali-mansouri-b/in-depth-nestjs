@@ -7,6 +7,8 @@ import {
 import { CustomersController } from './controllers/customers/customers.controller';
 import { CustomersService } from './services/customers/customers.service';
 import { ValidateCustomerMiddleware } from './middlewares/validate-customer.middleware';
+import { ValidateCustomerAccountMiddleware } from './middlewares/validate-customer-account.middleware';
+import { NextFunction, Request, Response } from 'express';
 
 @Module({
   controllers: [CustomersController],
@@ -14,9 +16,18 @@ import { ValidateCustomerMiddleware } from './middlewares/validate-customer.midd
 })
 export class CustomersModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ValidateCustomerMiddleware).forRoutes({
-      path: 'customers/search/:id',
-      method: RequestMethod.GET,
-    });
+    consumer
+      .apply(
+        ValidateCustomerMiddleware,
+        ValidateCustomerAccountMiddleware,
+        (req: Request, res: Response, next: NextFunction) => {
+          console.log('last middleware');
+          next();
+        },
+      )
+      .forRoutes({
+        path: 'customers/search/:id',
+        method: RequestMethod.GET,
+      });
   }
 }
